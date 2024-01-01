@@ -79,4 +79,65 @@ class Comics extends BaseController
         
         return redirect()->to('/comics');
     }
+
+    public function delete($id)
+    {
+        $this->comicsModel->delete($id);
+
+        session()->setFlashdata('message', 'Comic has been deleted.');
+
+        return redirect()->to('/comics');
+    }
+
+    public function edit($slug)
+    {
+        $data = [
+            'title' => 'Edit Comic',
+            'validation' => session('validation'),
+            'comic' => $this->comicsModel->getComics($slug)
+        ];
+
+        return view('comics/edit', $data);
+    }
+
+    public function update($id)
+    {
+        $oldComic = $this->comicsModel->getComics($this->request->getVar('slug'));
+
+        if($oldComic['title'] == $this->request->getVar('title')) {
+            $rule_title = 'required';
+        } else {
+            $rule_title = 'required|is_unique[comics.title]';
+        }
+        if (!$this->validate([
+            'title' => [
+                'rules' => $rule_title,
+                'errors' => [
+                    'required' => '{field} must be filled',
+                    'is_unique' => '{field} already registered'
+                ]
+            ],
+            'author' => 'required',
+            'publisher' => 'required',
+        ])) {
+            $validation = \Config\Services::validation();
+            session()->set('validation', $validation);
+            return redirect()->back()->withInput()->with('validation', $validation);
+        }
+
+        $slug = url_title($this->request->getVar('title'), '-', true);
+
+        $this->comicsModel->save([
+            'id' => $id,
+            'title' => $this->request->getVar('title'),
+            'slug' => $slug,
+            'author' => $this->request->getVar('author'),
+            'publisher' => $this->request->getVar('publisher'),
+            'cover' => $this->request->getVar('cover'),
+        ]);
+
+        session()->setFlashdata('message', 'Comic has been updated.');
+        
+        return redirect()->to('/comics');
+    }
 }

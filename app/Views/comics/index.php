@@ -8,6 +8,7 @@
                 <h1 class="my-2">Comics</h1>
                 <?php if(session()->getFlashdata('message')) : ?>
                     <div class="alert alert-success" role="alert">
+                        <?= session()->getFlashdata('message'); ?>
                     </div>
                 <?php endif; ?>
                 <table class="table">
